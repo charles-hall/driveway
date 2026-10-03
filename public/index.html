@@ -162,6 +162,15 @@ label.f input,label.f textarea{text-transform:none;letter-spacing:0;font-weight:
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
+/* touch: full-size tap targets for the view switcher and vehicle tabs */
+.views button,.tab,.btn,.chip-jump,[data-jump]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.views button{min-height:40px;min-width:44px;position:relative}
+@media (max-width:640px){
+  header.top{flex-direction:column;align-items:stretch}
+  .views{width:100%;padding:4px;gap:4px}
+  .views button{flex:1 1 0;min-height:44px;font-size:.95rem;padding:10px 8px}
+  .tab{min-height:44px}
+}
 /* server build: settings view */
 .tabs[hidden]{display:none!important}
 .set-people li .set-who{flex:1 1 180px}
