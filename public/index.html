@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Driveway">
-<title>Bedford Driveway</title>
+<title>Cottage Driveway</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -199,7 +199,7 @@ body{padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(4
 
 <div class="wrap">
   <header class="top">
-    <h1>Bedford <span>Driveway</span></h1>
+    <h1>Cottage <span>Driveway</span></h1>
     <div class="views" role="group" aria-label="View">
       <button id="v-service" aria-pressed="true">Maintenance</button>
       <button id="v-inv" aria-pressed="false">Inventory</button>
@@ -775,7 +775,7 @@ async function exportPdf(v){
   const title=[v.year,v.make,v.name].filter(Boolean).join(" ");
   doc.setFont("helvetica","bold"); doc.setFontSize(20); doc.setTextColor(...INK); doc.text(pdfText(title),M,56);
   doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...GREY);
-  doc.text(pdfText(`Maintenance record from Bedford Driveway · generated ${today()}`),M,74);
+  doc.text(pdfText(`Maintenance record from Cottage Driveway · generated ${today()}`),M,74);
   doc.setDrawColor(...RED); doc.setLineWidth(2); doc.line(M,84,W-M,84);
   const head={fillColor:RED,textColor:255,fontStyle:"bold"}, base={font:"helvetica",fontSize:9,cellPadding:4,textColor:INK,lineColor:[220,220,222],lineWidth:.5};
   const section=(label,y)=>{ doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...INK); doc.text(label,M,y); return y+8; };

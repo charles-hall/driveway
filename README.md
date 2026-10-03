@@ -1,4 +1,4 @@
-# Bedford Driveway
+# Cottage Driveway
 
 Vehicle maintenance, shared parts inventory and iPhone reminders for the household. Lives at https://driveway.oaksync.com.
 
@@ -17,7 +17,7 @@ In Google Cloud Console, with project **driveway-510522** selected:
 
 1. **APIs & Services › OAuth consent screen** (Google Auth Platform):
    - User type: **External**
-   - App name: Bedford Driveway
+   - App name: Cottage Driveway
    - Support email: yours
    - Authorized domain: `oaksync.com`
    - Scopes: `openid`, `email` and `profile` (no sensitive scopes, so no Google review)

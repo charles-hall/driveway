@@ -1,4 +1,4 @@
-// Bedford Driveway server. cPanel's "Setup Node.js App" runs this file under Passenger.
+// Cottage Driveway server. cPanel's "Setup Node.js App" runs this file under Passenger.
 require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 const path = require("path");
 const express = require("express");
@@ -99,7 +99,7 @@ app.delete("/api/:col/:id", (req, res, next) => (req.params.col === "vehicles" ?
 
 // Full JSON export for the owner.
 app.get("/api/export", auth.requireOwner, (_req, res) => {
-  res.set("Content-Disposition", `attachment; filename="bedford-driveway-${new Date().toISOString().slice(0, 10)}.json"`)
+  res.set("Content-Disposition", `attachment; filename="cottage-driveway-${new Date().toISOString().slice(0, 10)}.json"`)
     .json({ vehicles: store.allDocs("vehicles"), parts: store.allDocs("parts"), history: store.allDocs("history") });
 });
 
@@ -164,9 +164,9 @@ app.post("/api/push/unsubscribe", (req, res) => {
 
 app.post("/api/push/test", async (req, res) => {
   if (!push.ready) return res.status(503).json({ error: "Push keys aren't set up on the server yet." });
-  const n = await push.sendToUser(req.user.id, { title: "Bedford Driveway", body: "Notifications are working on this device.", url: "/" });
+  const n = await push.sendToUser(req.user.id, { title: "Cottage Driveway", body: "Notifications are working on this device.", url: "/" });
   res.json({ sent: n });
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Bedford Driveway listening on ${port}`));
+app.listen(port, () => console.log(`Cottage Driveway listening on ${port}`));

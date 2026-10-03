@@ -1,8 +1,8 @@
 {
-  "name": "bedford-driveway",
+  "name": "cottage-driveway",
   "version": "1.0.0",
   "private": true,
-  "description": "Bedford Driveway: vehicle maintenance, parts inventory and reminders for the household.",
+  "description": "Cottage Driveway: vehicle maintenance, parts inventory and reminders for the household.",
   "main": "app.js",
   "engines": {
     "node": ">=22.13"
