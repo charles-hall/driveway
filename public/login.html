@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bedford Driveway</title>
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="icon" href="/icons/favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Driveway">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+  :root { --bg:#0a0a0a; --surface:#1c1c1e; --ink:#ececec; --muted:#9a9a9e; --line:#2e2e31; --accent:#9e1b24; --accent-text:#d9434c; color-scheme:dark; }
+  * { box-sizing:border-box }
+  html,body { height:100% }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif; display:grid; place-items:center; padding:24px 16px; }
+  main { width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:28px 24px; display:flex; flex-direction:column; align-items:center; gap:16px; text-align:center }
+  img { width:96px; height:96px; border-radius:22px }
+  h1 { margin:0; font:700 2rem/1 "Barlow Condensed","Arial Narrow",sans-serif; text-transform:uppercase; letter-spacing:.02em }
+  h1 span { color:var(--accent-text) }
+  p { margin:0; color:var(--muted) }
+  a.btn { display:block; width:100%; padding:12px 16px; border-radius:10px; background:var(--accent); color:#fff; font-weight:600; text-decoration:none }
+  a.btn:hover { background:#b8222c }
+  a.btn:focus-visible { outline:2px solid var(--accent-text); outline-offset:2px }
+  .err { background:#3a1215; color:#ffd7d9; border-radius:8px; padding:10px 12px; font-size:.9rem; width:100%; text-align:left }
+  .hint { font-size:.8rem }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icons/icon-192.png" alt="">
+  <h1>Bedford <span>Driveway</span></h1>
+  <p>Maintenance, parts and reminders for the household's cars.</p>
+  <div class="err" id="err" hidden></div>
+  <a class="btn" href="/auth/google">Sign in with Google</a>
+  <p class="hint">On iPhone, open this page in Safari, tap Share, then Add to Home Screen to install the app and turn on notifications.</p>
+</main>
+<script>
+  const q = new URLSearchParams(location.search), e = q.get("e"), box = document.getElementById("err");
+  const msg = {
+    noaccess: `${q.get("email") || "That Google account"} doesn't have access yet. Ask the owner to invite you, then try again.`,
+    state: "Sign-in took too long or was opened in another window. Please try again.",
+    email: "That Google account doesn't have a verified email address.",
+    failed: "Sign-in didn't go through. Please try again.",
+  }[e];
+  if (msg) { box.textContent = msg; box.hidden = false; }
+</script>
+</body>
+</html>
