@@ -44,6 +44,7 @@ app.get("/login", (req, res) => (req.user ? res.redirect("/") : res.sendFile(pub
 app.get("/manifest.webmanifest", (_req, res) => res.type("application/manifest+json").sendFile(pub("manifest.webmanifest")));
 app.get("/sw.js", (_req, res) => res.set("Service-Worker-Allowed", "/").type("application/javascript").sendFile(pub("sw.js")));
 app.use("/icons", express.static(pub("icons"), { maxAge: "30d" }));
+app.get("/favicon.ico", (_req, res) => res.set("Cache-Control", "public, max-age=604800").sendFile(pub("favicon.ico")));
 app.get("/privacy", (_req, res) => res.sendFile(pub("privacy.html")));
 app.get("/healthz", (_req, res) => res.json({ ok: true }));
 
