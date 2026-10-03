@@ -3,7 +3,7 @@
 Vehicle maintenance, shared parts inventory and iPhone reminders for the household. Lives at https://driveway.oaksync.com.
 
 - **Server:** Node.js 22 + Express, run by cPanel's Setup Node.js App (Passenger)
-- **Data:** one SQLite file (`tallazpo_driveway`), kept outside the web folder
+- **Data:** one SQLite file (`tallazpo_driveway`), kept outside the web folder. Uses Node's built-in SQLite, so there's no native add-on to compile (requires Node 22.13 or later).
 - **Sign-in:** Google, invite only. Roles are owner, editor and viewer.
 - **Notifications:** Web Push. On iPhone (iOS 16.4 or later), add the app to the Home Screen first.
 

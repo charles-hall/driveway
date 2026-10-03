@@ -4,7 +4,9 @@
   "private": true,
   "description": "Bedford Driveway: vehicle maintenance, parts inventory and reminders for the household.",
   "main": "app.js",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "start": "node app.js",
     "remind": "node scripts/remind.js",
@@ -13,7 +15,6 @@
     "vapid": "node scripts/gen-vapid.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
