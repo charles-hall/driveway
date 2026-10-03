@@ -1,0 +1,5 @@
+---
+# cPanel Git Version Control runs these after each deploy (Pull or Deploy HEAD Commit).
+deployment:
+  tasks:
+    - /bin/bash scripts/deploy.sh
