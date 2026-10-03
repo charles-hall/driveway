@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/icon-180.png">
@@ -174,7 +174,7 @@ label.f input,label.f textarea{text-transform:none;letter-spacing:0;font-weight:
 /* server build: settings view */
 .tabs[hidden]{display:none!important}
 .set-people li .set-who{flex:1 1 180px}
-body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+body{padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
 .set-h{margin:0;font:700 1.3rem/1.1 var(--display);text-transform:uppercase;letter-spacing:.02em}
 .set-row{display:flex;flex-wrap:wrap;gap:8px}
 .set-me{display:flex;align-items:center;gap:12px}
