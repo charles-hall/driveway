@@ -2,7 +2,7 @@
   "name": "cottage-driveway",
   "version": "1.0.0",
   "private": true,
-  "description": "Cottage Driveway: vehicle maintenance, parts inventory and reminders for the household.",
+  "description": "Driveway: vehicle maintenance, parts inventory and reminders for invited households.",
   "main": "app.js",
   "engines": {
     "node": ">=22.13"

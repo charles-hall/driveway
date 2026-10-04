@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Driveway">
-<title>Cottage Driveway</title>
+<title>Driveway</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -173,6 +173,19 @@ label.f input,label.f textarea{text-transform:none;letter-spacing:0;font-weight:
   .views button{flex:1 1 0;min-height:44px;font-size:.95rem;padding:10px 8px}
   .tab{min-height:44px}
 }
+/* households: name in the header, switcher for people in more than one */
+.brand{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-width:0}
+h1 .hh{color:var(--ink)}
+h1 .hh:empty{display:none}
+#hh-switch{background:var(--chip);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:600 .85rem var(--body);min-height:36px;max-width:100%}
+.set-hh{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.set-hh li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding-top:12px;border-top:1px solid var(--line)}
+.set-hh li:first-child{border-top:0;padding-top:0}
+.set-hh input,.set-form input{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 10px;font:inherit;min-width:0}
+.set-hh input[data-hh-name]{flex:0 1 180px}
+.set-hh .meta{flex:1 1 220px;color:var(--muted);font-size:.85rem;min-width:0;overflow-wrap:anywhere}
+.set-form{display:flex;flex-wrap:wrap;gap:8px}
+.set-form input{flex:1 1 180px}
 /* server build: settings view */
 .tabs[hidden]{display:none!important}
 .set-people li .set-who{flex:1 1 180px}
@@ -201,7 +214,8 @@ body{padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(4
 
 <div class="wrap">
   <header class="top">
-    <h1>Cottage <span>Driveway</span></h1>
+    <div class="brand"><h1><span class="hh" id="hh-name"></span> <span>Driveway</span></h1>
+      <select id="hh-switch" hidden aria-label="Switch household"></select></div>
     <div class="views" role="group" aria-label="View">
       <button id="v-service" aria-pressed="true">Maintenance</button>
       <button id="v-inv" aria-pressed="false">Inventory</button>
@@ -777,7 +791,7 @@ async function exportPdf(v){
   const title=[v.year,v.make,v.name].filter(Boolean).join(" ");
   doc.setFont("helvetica","bold"); doc.setFontSize(20); doc.setTextColor(...INK); doc.text(pdfText(title),M,56);
   doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...GREY);
-  doc.text(pdfText(`Maintenance record from Cottage Driveway · generated ${today()}`),M,74);
+  doc.text(pdfText(`Maintenance record from ${brandName()} · generated ${today()}`),M,74);
   doc.setDrawColor(...RED); doc.setLineWidth(2); doc.line(M,84,W-M,84);
   const head={fillColor:RED,textColor:255,fontStyle:"bold"}, base={font:"helvetica",fontSize:9,cellPadding:4,textColor:INK,lineColor:[220,220,222],lineWidth:.5};
   const section=(label,y)=>{ doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...INK); doc.text(label,M,y); return y+8; };
@@ -919,6 +933,8 @@ async function disablePush(){
 }
 async function refreshMe(){ try{ window.DRIVEWAY.me=await sapi("GET","/api/me"); }catch{} }
 async function loadPeople(){ if(me().role!=="owner") return; try{ people=await sapi("GET","/api/users"); }catch{ people=[]; } }
+let allHouseholds=null;
+async function loadHouseholds(){ if(!me().isAdmin) return; try{ allHouseholds=await sapi("GET","/api/admin/households"); }catch{ allHouseholds=[]; } }
 
 function fmtLogin(s){ if(!s) return "Hasn't signed in yet"; const d=new Date(s.replace(" ","T")+(/[zZ]|[+-]\d\d:?\d\d$/.test(s)?"":"Z")); return isNaN(d)?"":"Last signed in "+fmtDate(d); }
 
@@ -934,9 +950,24 @@ function settingsView(){
   }[pushState];
   const others=u.devices&&pushState!=="on"?u.devices:u.devices-1;
   const prefs=PREF_LABEL.map(([k,l,h])=>`<label class="set-pref"><input type="checkbox" data-pref="${k}" ${p[k]?"checked":""}><span><b>${l}</b><small>${h}</small></span></label>`).join("");
-  const owner=u.role==="owner";
-  const peopleBlock=!owner?"":`<section class="plate" id="set-people"><h2 class="set-h">People</h2>
-    <p class="form-hint">Only people listed here can sign in. Editors can log service and update inventory; viewers can only look; owners also manage people and vehicles.</p>
+  const owner=u.role==="owner", hh=u.household;
+  const householdBlock=!owner?"":`<section class="plate"><h2 class="set-h">Household</h2>
+    <form class="set-form" id="set-hh-rename"><input type="text" id="hh-rename" value="${esc(hh.name)}" maxlength="40" required aria-label="Household name">
+      <button class="btn" type="submit">Rename</button></form>
+    <p class="form-hint">Shown in the header as “${esc(hh.name)} Driveway” for everyone in this household.</p>
+    <p class="form-hint"><a href="/api/export" download>Download a backup</a> of this household's vehicles, parts and service history (JSON).</p></section>`;
+  const adminBlock=!u.isAdmin?"":`<section class="plate" id="set-admin"><h2 class="set-h">Households</h2>
+    <p class="form-hint">Only you can see this. Each household's records stay private to its own members, including from you unless you're one of them.</p>
+    ${allHouseholds===null?`<p>Loading…</p>`:allHouseholds.length?`<ul class="set-hh">${allHouseholds.map(h=>`<li>
+      <input type="text" data-hh-name="${h.id}" id="hh-name-${h.id}" value="${esc(h.name)}" maxlength="40" aria-label="Name of household ${h.id}">
+      <span class="meta">${h.members} ${h.members===1?"person":"people"} · ${h.vehicles} vehicle${h.vehicles===1?"":"s"}${h.owners?` · Owner: ${esc(h.owners)}`:""}</span>
+      <span class="set-row" data-hh-del-wrap="${h.id}"><button class="btn danger" data-sact="hh-del" data-hid="${h.id}">Delete</button></span></li>`).join("")}</ul>`:`<p>No households yet.</p>`}
+    <form class="set-form" id="set-hh-create"><input type="text" id="new-hh-name" placeholder="Household name, e.g. Smith" maxlength="40" required aria-label="New household name">
+      <input type="email" id="new-hh-owner" placeholder="Owner's Google email" required aria-label="Owner's Google email">
+      <button class="btn primary" type="submit">Create household</button></form>
+    <p class="form-hint">The owner signs in at driveway.oaksync.com with that Google account and invites their own family. No email is sent, so let them know.</p></section>`;
+  const peopleBlock=!owner?"":`<section class="plate" id="set-people"><h2 class="set-h">People in ${esc(hh.name)}</h2>
+    <p class="form-hint">Only people listed here can see this household. Editors can log service and update inventory; viewers can only look; owners also manage people and vehicles.</p>
     ${people===null?`<p>Loading…</p>`:`<ul class="set-people">${people.map(x=>`<li>
       ${x.picture?`<img src="${esc(x.picture)}" alt="" referrerpolicy="no-referrer">`:`<span class="set-av">${esc((x.name||x.email)[0].toUpperCase())}</span>`}
       <span class="set-who"><b>${esc(x.name||x.email)}</b><small>${esc(x.name?x.email+" · ":"")}${esc(fmtLogin(x.lastLogin))}${x.devices?` · ${x.devices} device${x.devices>1?"s":""} with notifications`:""}</small></span>
@@ -947,20 +978,22 @@ function settingsView(){
       <button class="btn primary" type="submit">Invite</button></form>
     <p class="form-hint">They sign in at driveway.oaksync.com with that Google account. No email is sent, so let them know.</p></section>`;
   return `<section class="plate"><h2 class="set-h">Account</h2>
-      <div class="set-me">${u.picture?`<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">`:""}<span class="set-who"><b>${esc(u.name||u.email)}</b><small>${esc(u.email)} · ${ROLE_LABEL[u.role]||""}</small></span>
+      <div class="set-me">${u.picture?`<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">`:""}<span class="set-who"><b>${esc(u.name||u.email)}</b><small>${esc(u.email)}${hh?` · ${esc(hh.name)} ${ROLE_LABEL[u.role].toLowerCase()}`:""}${u.isAdmin?" · Site admin":""}</small></span>
       <a class="btn" href="/auth/logout">Sign out</a></div>
-      ${owner?`<p class="form-hint"><a href="/api/export" download>Download a backup</a> of all vehicles, parts and service history (JSON).</p>`:""}</section>
+      ${(u.households||[]).length>1?`<p class="form-hint">You're in ${u.households.length} households. Switch between them with the menu next to the name at the top.</p>`:""}</section>
     <section class="plate"><h2 class="set-h">Notifications</h2>${pushBlock}
       ${others>0?`<p class="form-hint">Also on for ${others} other device${others>1?"s":""}.</p>`:""}
       <fieldset class="set-prefs"><legend>Send me</legend>${prefs}</fieldset></section>
-    ${peopleBlock}`;
+    ${householdBlock}
+    ${peopleBlock}
+    ${adminBlock}`;
 }
 function renderSettings(force){
   if(view!=="settings") return;
   if(!force&&(settingsBusy||$("#main").contains(document.activeElement)&&document.activeElement.matches("input,select"))) return;
   $("#main").innerHTML=settingsView();
 }
-async function openSettings(){ await Promise.all([checkPush(),loadPeople(),refreshMe()]); renderSettings(true); }
+async function openSettings(){ await Promise.all([checkPush(),loadPeople(),loadHouseholds(),refreshMe()]); renderSettings(true); }
 
 $("#main").addEventListener("click",async e=>{
   const b=e.target.closest("[data-sact]"); if(!b||view!=="settings") return;
@@ -968,6 +1001,21 @@ $("#main").addEventListener("click",async e=>{
   if(a==="push-on") return enablePush();
   if(a==="push-off") return disablePush();
   if(a==="push-test"){ try{ const r=await sapi("POST","/api/push/test"); toast(r.sent?"Test sent":"No devices to send to"); }catch(err){ toast(err.message||"Couldn't send a test"); } return; }
+  if(a==="hh-del"){
+    const id=b.dataset.hid, wrap=document.querySelector(`[data-hh-del-wrap="${id}"]`), h=(allHouseholds||[]).find(x=>String(x.id)===id); if(!wrap||!h) return;
+    settingsBusy=true;
+    wrap.innerHTML=`<input type="text" id="hh-del-${id}" placeholder="Type ${esc(h.name)} to confirm" aria-label="Type the household name to confirm deleting it"><button class="btn danger" data-sact="hh-del-go" data-hid="${id}">Delete forever</button><button class="btn" data-sact="hh-del-cancel">Cancel</button>`;
+    $("#hh-del-"+id).focus(); return;
+  }
+  if(a==="hh-del-cancel"){ settingsBusy=false; renderSettings(true); return; }
+  if(a==="hh-del-go"){
+    const id=b.dataset.hid, typed=($("#hh-del-"+id)||{}).value||"";
+    try{ await sapi("DELETE","/api/admin/households/"+id,{confirm:typed.trim()}); toast("Household deleted"); settingsBusy=false;
+      await refreshMe(); if(!me().household||String(me().household.id)===id){ location.reload(); return; }
+      await loadHouseholds(); renderSettings(true); }
+    catch(err){ toast(err.message||"Couldn't delete"); }
+    return;
+  }
   if(a==="remove"){
     if(!b.dataset.armed){ b.dataset.armed=1; b.textContent="Confirm remove"; return; }
     try{ await sapi("DELETE","/api/users/"+b.dataset.uid); toast("Access removed"); await loadPeople(); renderSettings(true); }catch(err){ toast(err.message||"Couldn't remove"); }
@@ -976,14 +1024,39 @@ $("#main").addEventListener("click",async e=>{
 $("#main").addEventListener("change",async e=>{
   if(view!=="settings") return; const t=e.target;
   if(t.dataset.pref){ try{ const r=await sapi("PATCH","/api/me/prefs",{[t.dataset.pref]:t.checked}); window.DRIVEWAY.me.prefs=r.prefs; toast("Saved"); }catch(err){ t.checked=!t.checked; toast(err.message||"Couldn't save"); } return; }
+  if(t.dataset.hhName){ try{ await sapi("PATCH","/api/admin/households/"+t.dataset.hhName,{name:t.value}); toast("Renamed"); await refreshMe(); applyBrand(); await loadHouseholds(); renderSettings(true); }catch(err){ toast(err.message||"Couldn't rename"); } return; }
   if(t.dataset.role){ try{ await sapi("PATCH","/api/users/"+t.dataset.role,{role:t.value}); toast("Role updated"); await loadPeople(); renderSettings(true); }catch(err){ toast(err.message||"Couldn't change role"); await loadPeople(); renderSettings(true); } }
 });
 $("#main").addEventListener("submit",async e=>{
+  if(e.target.id==="set-hh-rename"){ e.preventDefault();
+    try{ await sapi("PATCH","/api/household",{name:$("#hh-rename").value}); toast("Household renamed"); await refreshMe(); applyBrand(); await loadHouseholds(); renderSettings(true); }
+    catch(err){ toast(err.message||"Couldn't rename"); } return; }
+  if(e.target.id==="set-hh-create"){ e.preventDefault(); settingsBusy=true;
+    try{ const n=$("#new-hh-name").value.trim(), o=$("#new-hh-owner").value.trim(); await sapi("POST","/api/admin/households",{name:n,ownerEmail:o}); toast(`${n} created. ${o} can sign in now.`); await refreshMe(); applyBrand(); await loadHouseholds(); }
+    catch(err){ toast(err.message||"Couldn't create the household"); }
+    settingsBusy=false; renderSettings(true); return; }
   if(e.target.id!=="set-invite") return; e.preventDefault();
   settingsBusy=true;
-  try{ const em=$("#inv-email").value.trim(); await sapi("POST","/api/users",{email:em,role:$("#inv-role").value}); toast(em+" can now sign in"); await loadPeople(); }
+  try{ const em=$("#inv-email").value.trim(); await sapi("POST","/api/users",{email:em,role:$("#inv-role").value}); toast(`${em} can now sign in to ${me().household.name}`); await loadPeople(); }
   catch(err){ toast(err.message||"Couldn't invite"); }
   settingsBusy=false; renderSettings(true);
+});
+
+/* Household name in the header and tab title; switcher for people in more than one. */
+function brandName(){ const h=me().household; return h?`${h.name} Driveway`:"Driveway"; }
+function applyBrand(){
+  const u=me(), h=u.household, list=u.households||[];
+  $("#hh-name").textContent=h?h.name:"";
+  document.title=brandName();
+  const sw=$("#hh-switch");
+  sw.hidden=list.length<2;
+  sw.innerHTML=list.map(x=>`<option value="${x.id}" ${h&&x.id===h.id?"selected":""}>${esc(x.name)}</option>`).join("");
+  const noHome=!h; $("#v-service").hidden=noHome; $("#v-inv").hidden=noHome;
+}
+$("#hh-switch").addEventListener("change",async e=>{
+  try{ await sapi("POST","/api/me/household",{id:Number(e.target.value)}); }catch(err){ toast(err.message||"Couldn't switch"); return; }
+  try{ localStorage.setItem("gl-view","service"); }catch{}
+  location.reload();
 });
 
 /* Deep links from notifications: #inventory, #settings, #v-<vehicleId> */
@@ -1005,6 +1078,10 @@ window.addEventListener("hashchange",()=>{ if(applyHash()) { render(); window.sc
   db = await window.claude?.use?.("db");
   if(!db){ $("#main").innerHTML=`<div class="plate empty">Couldn't reach the server. Check your connection and reload.</div>`; $("#tabs").innerHTML=""; return; }
   try{ const u=await window.claude.use("user"); const w=u?await u.can("data.write"):null; if(w===false) canWrite=false; }catch{}
+  applyBrand();
+  if(!me().household){ // site admin who isn't in any household yet: only Settings applies
+    view="settings"; $("#tabs").hidden=true; render(); openSettings(); return;
+  }
   if(view==="settings") view="service";
   applyHash();
   db.collection("history").onSnapshot(snap=>{

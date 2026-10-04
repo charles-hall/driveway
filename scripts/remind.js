@@ -11,35 +11,42 @@ const DAY = 864e5;
 
 async function main() {
   if (!push.ready) { console.log("Push keys missing; nothing sent."); return; }
-  const vehicles = store.allDocs("vehicles");
-  const users = store.listUsers().filter(u => u.status === "active" && store.subscriptionsFor(u.id).length);
+  const users = store.activeUsers().filter(u => store.subscriptionsFor(u.id).length);
+  const vehiclesOf = new Map(); // household id -> vehicles, loaded once
   let total = 0;
 
   for (const u of users) {
     const p = u.prefs;
-    let overdueCount = 0;
+    const households = store.membershipsFor(u.id);
+    const many = households.length > 1;
+    let overdueCount = 0; // badge = overdue items across all of this person's households
     const messages = [];
-    for (const v of vehicles) {
-      if (!v.dailyDriver && !p.allVehicles) continue;
-      for (const { it, d } of statusList(v)) {
-        if (d.state === "over") {
-          overdueCount++;
-          if (!p.overdue) continue;
-          const key = `over:${v.id}:${it.id}:${it.lastChanged || it.lastMiles || ""}`;
-          const last = store.lastSent(key, u.id);
-          if (!last || Date.now() - last >= 7 * DAY) messages.push({ key, title: `${v.name}: ${it.name} is overdue`, body: d.detail ? `Was due ${d.detail}.` : "Log it when it's done.", url: `/#v-${v.id}` });
-        } else if (d.state === "soon" && p.dueSoon) {
-          const key = `soon:${v.id}:${it.id}:${d.detail}`;
-          if (!store.lastSent(key, u.id)) messages.push({ key, title: `${v.name}: ${it.name} due soon`, body: `Due ${d.detail}.`, url: `/#v-${v.id}` });
+    for (const h of households) {
+      if (!vehiclesOf.has(h.id)) vehiclesOf.set(h.id, store.allDocs(h.id, "vehicles"));
+      const where = many ? ` (${h.name})` : "";
+      const link = vid => `/?h=${h.id}#v-${vid}`;
+      for (const v of vehiclesOf.get(h.id)) {
+        if (!v.dailyDriver && !p.allVehicles) continue;
+        for (const { it, d } of statusList(v)) {
+          if (d.state === "over") {
+            overdueCount++;
+            if (!p.overdue) continue;
+            const key = `h${h.id}:over:${v.id}:${it.id}:${it.lastChanged || it.lastMiles || ""}`;
+            const last = store.lastSent(key, u.id);
+            if (!last || Date.now() - last >= 7 * DAY) messages.push({ key, title: `${v.name}${where}: ${it.name} is overdue`, body: d.detail ? `Was due ${d.detail}.` : "Log it when it's done.", url: link(v.id) });
+          } else if (d.state === "soon" && p.dueSoon) {
+            const key = `h${h.id}:soon:${v.id}:${it.id}:${d.detail}`;
+            if (!store.lastSent(key, u.id)) messages.push({ key, title: `${v.name}${where}: ${it.name} due soon`, body: `Due ${d.detail}.`, url: link(v.id) });
+          }
         }
-      }
-      // Mileage check-in: odometer not updated in 30 days
-      if (p.mileage && v.dailyDriver) {
-        const seen = parseDate(v.odometerDate);
-        if (!seen || Date.now() - seen >= 30 * DAY) {
-          const key = `miles:${v.id}`;
-          const last = store.lastSent(key, u.id);
-          if (!last || Date.now() - last >= 30 * DAY) messages.push({ key, title: `Update the ${v.name}'s mileage`, body: "A current odometer reading keeps due dates accurate.", url: `/#v-${v.id}` });
+        // Mileage check-in: odometer not updated in 30 days
+        if (p.mileage && v.dailyDriver) {
+          const seen = parseDate(v.odometerDate);
+          if (!seen || Date.now() - seen >= 30 * DAY) {
+            const key = `h${h.id}:miles:${v.id}`;
+            const last = store.lastSent(key, u.id);
+            if (!last || Date.now() - last >= 30 * DAY) messages.push({ key, title: `Update the ${v.name}'s mileage${where}`, body: "A current odometer reading keeps due dates accurate.", url: link(v.id) });
+          }
         }
       }
     }

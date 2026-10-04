@@ -1,10 +1,11 @@
-# Cottage Driveway
+# Driveway
 
 Vehicle maintenance, shared parts inventory and iPhone reminders for the household. Lives at https://driveway.oaksync.com.
 
 - **Server:** Node.js 22 + Express, run by cPanel's Setup Node.js App (Passenger)
 - **Data:** one SQLite file (`tallazpo_driveway`), kept outside the web folder. Uses Node's built-in SQLite, so there's no native add-on to compile (requires Node 22.13 or later).
-- **Sign-in:** Google, invite only. Roles are owner, editor and viewer.
+- **Households:** each family gets its own private Driveway (vehicles, parts, history, people). The header reads "*Name* Driveway." Only the site admin (`OWNER_EMAIL`) can create households.
+- **Sign-in:** Google, invite only. Within a household, roles are owner, editor and viewer. One person can belong to several households and switch between them.
 - **Notifications:** Web Push. On iPhone (iOS 16.4 or later), add the app to the Home Screen first.
 
 Secrets (`.env`), the database and your vehicle data never go in git.
@@ -17,7 +18,7 @@ In Google Cloud Console, with project **driveway-510522** selected:
 
 1. **APIs & Services › OAuth consent screen** (Google Auth Platform):
    - User type: **External**
-   - App name: Cottage Driveway
+   - App name: Driveway
    - Support email: yours
    - Authorized domain: `oaksync.com`
    - Scopes: `openid`, `email` and `profile` (no sensitive scopes, so no Google review)
@@ -57,7 +58,7 @@ Click **Restart** on the Node.js app page.
 ### 4. Bring over your data
 
 1. Upload `vehicles.json`, `parts.json` and `history.json` (sent separately, not in the repo) into the app's `import/` folder.
-2. With the environment activated, run `npm run import`. Existing records with the same ids are replaced, so it's safe to run again.
+2. With the environment activated, run `npm run import -- "Household name"` (the name can be left off when there is only one household). Existing records with the same ids are replaced, so it's safe to run again.
 3. Delete the three JSON files from `import/` afterward.
 
 ### 5. Daily reminders
@@ -74,6 +75,7 @@ Cron uses the server's time zone. Run `date` in Terminal to check it.
 
 1. Open https://driveway.oaksync.com and sign in with the `OWNER_EMAIL` account.
 2. Under **Settings › People**, invite others by their Google email address and choose a role.
+3. To add another family: **Settings › Households** (admin only), enter the household name and its owner's Google email, then let the owner know. They invite their own family from their Settings.
 3. On each iPhone:
    - Open the site in Safari, tap **Share**, then **Add to Home Screen**.
    - Open Driveway from the Home Screen, go to **Settings**, then tap **Turn on notifications**.
@@ -81,7 +83,7 @@ Cron uses the server's time zone. Run `date` in Terminal to check it.
 ## Day to day
 
 - **Deploy:** push to `main` and the server picks it up. If a change doesn't show, click **Restart** on the Node.js app page.
-- **Add a person from Terminal:** `npm run add-user -- name@gmail.com editor`
+- **Add a person from Terminal:** `npm run add-user -- name@gmail.com editor "Household name"`
 - **Backup:** Settings › Account › Download a backup (owner only), or copy `~/driveway-data/tallazpo_driveway.sqlite`.
 - **Health check:** https://driveway.oaksync.com/healthz
 
@@ -108,5 +110,9 @@ Each person chooses which notifications they get in Settings. Non-daily drivers 
 | `scripts/remind.js` | Daily reminder job |
 | `scripts/import.js` | Imports JSON exports |
 | `scripts/deploy.sh` | Post-deploy install and restart |
-| `public/index.html` | The app (the original page plus `tools/shim.js` and `tools/settings.js` inlined) |
+| `public/index.html` | The app: the original page, a small bridge to the server API, and the Settings, People and Households screens |
 | `public/sw.js` | Service worker that shows notifications |
+
+## Upgrading from the single-household version
+
+The first start after this update converts the database automatically: everything that existed becomes the first household (named "Cottage", or whatever `FIRST_HOUSEHOLD_NAME` in `.env` says), and everyone keeps their current role in it. Nobody is signed out. Take a backup first: copy `~/driveway-data/tallazpo_driveway.sqlite` somewhere safe.

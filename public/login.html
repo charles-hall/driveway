@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cottage Driveway</title>
+<title>Driveway</title>
 <meta name="theme-color" content="#0a0a0a">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/icon-180.png?v=2">
@@ -33,8 +33,8 @@
 <body>
 <main>
   <img src="/icons/icon-192.png?v=2" alt="">
-  <h1>Cottage <span>Driveway</span></h1>
-  <p>Maintenance, parts and reminders for the household's cars.</p>
+  <h1><span>Driveway</span></h1>
+  <p>Maintenance, parts and reminders for your household's cars.</p>
   <div class="err" id="err" hidden></div>
   <a class="btn" href="/auth/google">Sign in with Google</a>
   <p class="hint"><a href="/privacy" style="color:inherit">Privacy policy</a></p>
@@ -43,7 +43,7 @@
 <script>
   const q = new URLSearchParams(location.search), e = q.get("e"), box = document.getElementById("err");
   const msg = {
-    noaccess: `${q.get("email") || "That Google account"} doesn't have access yet. Ask the owner to invite you, then try again.`,
+    noaccess: `${q.get("email") || "That Google account"} doesn't have access yet. Ask your household's owner to invite you, then try again.`,
     state: "Sign-in took too long or was opened in another window. Please try again.",
     email: "That Google account doesn't have a verified email address.",
     failed: "Sign-in didn't go through. Please try again.",

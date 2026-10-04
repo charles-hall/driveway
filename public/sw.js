@@ -5,7 +5,7 @@ self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("push", event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data && event.data.text() }; }
-  const title = data.title || "Cottage Driveway";
+  const title = data.title || "Driveway";
   const jobs = [self.registration.showNotification(title, {
     body: data.body || "",
     tag: data.tag,

@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Cottage Driveway",
+  "name": "Driveway",
   "short_name": "Driveway",
-  "description": "Maintenance, parts and reminders for the household's vehicles.",
+  "description": "Maintenance, parts and reminders for your household's vehicles.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
